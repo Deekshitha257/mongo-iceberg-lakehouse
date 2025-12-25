@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+
+# Airflow
+airflow/logs/
+airflow/dags/__pycache__/
+# airflow/data/
+
+# Local / docs
+*.docx
+
+# Jars (optional – commit only if required)
+jars/
+
+# Environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+backup/

@@ -1,0 +1,23 @@
+# Airflow core (match the image version above)
+apache-airflow==2.9.2
+
+# Airflow providers
+apache-airflow-providers-apache-spark
+apache-airflow-providers-mongo
+apache-airflow-providers-amazon
+apache-airflow-providers-postgres
+
+# DB drivers & connectors
+psycopg2-binary
+pymongo
+
+
+pyspark
+
+# Useful extras
+boto3
+requests
+
+# Optional: dbt (only if you call dbt from Airflow)
+dbt-core
+dbt-trino

@@ -1,0 +1,143 @@
+[
+  {
+    "order_id": "ORD-2024-001",
+    "customer_id": "CUST-101",
+    "order_date": "2024-02-01T08:30:00",
+    "status": "DELIVERED",
+    "items": [
+      {
+        "product_id": "P001",
+        "product_name": "Gaming Laptop",
+        "quantity": 1,
+        "unit_price": 1200.50
+      },
+      {
+        "product_id": "P005",
+        "product_name": "Wireless Mouse",
+        "quantity": 1,
+        "unit_price": 25.00
+      }
+    ],
+    "total_amount": 1225.50,
+    "shipping_address": {
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "zip": "500081"
+    }
+  },
+  {
+    "order_id": "ORD-2024-002",
+    "customer_id": "CUST-102",
+    "order_date": "2024-02-02T14:15:00",
+    "status": "PROCESSING",
+    "items": [
+      {
+        "product_id": "P003",
+        "product_name": "Mechanical Keyboard",
+        "quantity": 2,
+        "unit_price": 45.00
+      }
+    ],
+    "total_amount": 90.00,
+    "shipping_address": {
+      "city": "Bangalore",
+      "state": "Karnataka",
+      "zip": "560001"
+    }
+  },
+  {
+    "order_id": "ORD-2024-003",
+    "customer_id": "CUST-101",
+    "order_date": "2024-02-03T09:00:00",
+    "status": "SHIPPED",
+    "items": [
+      {
+        "product_id": "P002",
+        "product_name": "Monitor 27-inch",
+        "quantity": 1,
+        "unit_price": 300.00
+      }
+    ],
+    "total_amount": 300.00,
+    "shipping_address": {
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "zip": "500081"
+    }
+  },
+  {
+    "order_id": "ORD-2024-004",
+    "customer_id": "CUST-103",
+    "order_date": "2024-02-04T11:45:00",
+    "status": "CANCELLED",
+    "items": [
+      {
+        "product_id": "P010",
+        "product_name": "USB-C Hub",
+        "quantity": 1,
+        "unit_price": 15.99
+      }
+    ],
+    "total_amount": 15.99,
+    "shipping_address": {
+      "city": "Mumbai",
+      "state": "Maharashtra",
+      "zip": "400001"
+    }
+  },
+  {
+    "order_id": "ORD-2024-005",
+    "customer_id": "CUST-102",
+    "order_date": "2024-02-05T16:20:00",
+    "status": "DELIVERED",
+    "items": [
+      {
+        "product_id": "P005",
+        "product_name": "Wireless Mouse",
+        "quantity": 5,
+        "unit_price": 25.00
+      },
+      {
+        "product_id": "P009",
+        "product_name": "Mouse Pad",
+        "quantity": 5,
+        "unit_price": 10.00
+      }
+    ],
+    "total_amount": 175.00,
+    "shipping_address": {
+      "city": "Bangalore",
+      "state": "Karnataka",
+      "zip": "560001"
+    }
+  },
+  {
+    "order_id": "ORD-2024-00600",
+    "customer_id": "CUST-1088",
+    "order_date": "2024-02-05T16:20:00",
+    "status": "DELIVERED",
+    "items": [
+      {
+        "product_id": "P005555",
+        "product_name": "Wireless Mouse",
+        "quantity": 5,
+        "unit_price": 25.00
+      },
+      {
+        "product_id": "P009",
+        "product_name": "Mouse Pad",
+        "quantity": 5,
+        "unit_price": 10.00
+      }
+    ],
+    "total_amount": 175.00,
+    "shipping_address": {
+      "city": "Bangalore",
+      "state": "Karnataka",
+      "zip": "560001",
+      "landmark":"more_market"
+
+    },
+    "discount":500
+  }
+]

@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: local-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo_user
+      MONGO_INITDB_ROOT_PASSWORD: mongo_pass
+      MONGO_INITDB_DATABASE: airflow_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - lakehouse-net
+
+volumes:
+  mongo_data:
+
+networks:
+  lakehouse-net:
+    external: true

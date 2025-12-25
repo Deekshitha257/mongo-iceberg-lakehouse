@@ -1,0 +1,217 @@
+version: "3.8"
+
+services:
+
+  # ---------------------------
+  # Nessie
+  # ---------------------------
+  nessie:
+    image: projectnessie/nessie:latest
+    container_name: nessie
+    ports:
+      - "19120:19120"
+    environment:
+      JAVA_TOOL_OPTIONS: "-Dnessie.server.authorization.enabled=false -Xmx1G"
+      QUARKUS_OPENTELEMETRY_ENABLED: "false"
+    restart: unless-stopped
+    volumes:
+      - nessie_data:/var/nessie
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:19120/api/v2/trees/- || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 60s
+    networks:
+      - lakehouse-net
+
+  # ---------------------------
+  # PostgreSQL (Airflow metadata)
+  # ---------------------------
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - lakehouse-net
+
+  # ---------------------------
+  # Airflow Init
+  # ---------------------------
+  airflow-init:
+    build: ./airflow
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/data:/opt/airflow/data
+      - ./jars:/opt/airflow/jars
+      - ./spark_jobs:/opt/airflow/spark_jobs
+    command: >
+     bash -c "airflow db init &&
+     airflow users create --username airflow --firstname Airflow --lastname Admin --role Admin --email admin@example.com --password airflow"
+    networks:
+      - lakehouse-net
+
+  # ---------------------------
+  # Airflow Webserver
+  # ---------------------------
+  airflow-webserver:
+    build: ./airflow
+    container_name: airflow-webserver
+    depends_on:
+      - postgres
+      - airflow-init
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/data:/opt/airflow/data
+      - ./jars:/opt/airflow/jars
+      - ./spark_jobs:/opt/airflow/spark_jobs
+    ports:
+      - "8080:8080"
+    command: webserver
+    mem_limit: 4g
+    networks:
+      - lakehouse-net
+
+  # ---------------------------
+  # Airflow Scheduler
+  # ---------------------------
+  airflow-scheduler:
+    build: ./airflow
+    container_name: airflow-scheduler
+    depends_on:
+      - airflow-webserver
+      - airflow-init
+      - postgres
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: "UTC"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/data:/opt/airflow/data
+      - ./jars:/opt/airflow/jars
+      - ./spark_jobs:/opt/airflow/spark_jobs
+    command: scheduler
+    mem_limit: 8g
+    networks:
+      - lakehouse-net
+
+  # ---------------------------
+  # Spark
+  # ---------------------------
+  spark:
+    image: apache/spark:3.4.1-python3
+    container_name: spark
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./spark_jobs:/opt/spark/jobs
+      - ./jars:/opt/jars
+    depends_on:
+      - nessie
+    networks:
+      - lakehouse-net
+
+
+    # ---------------------------
+  # Spark Notebook (AWS S3)
+  # ---------------------------
+  spark-notebook:
+    build: ./spark-notebook
+    container_name: spark-notebook
+    user: root
+    ports:
+      - "8888:8888"
+    env_file:
+      - .env
+    environment:
+      AWS_REGION: eu-north-1
+      PYSPARK_SUBMIT_ARGS: >
+        --packages org.mongodb.spark:mongo-spark-connector_2.12:10.1.1
+        pyspark-shell
+    volumes:
+      - ./spark_jobs:/home/jovyan/work
+      - ./data:/home/jovyan/data
+      - ./jars:/home/jovyan/jars
+      - ./spark_jobs:/home/jovyan/spark_jobs
+
+      # Jupyter persistence
+      - jupyter_local:/home/jovyan/.local
+      - jupyter_config:/home/jovyan/.jupyter
+
+    depends_on:
+      - nessie
+
+    command: >
+      bash -c "
+        ln -sf /opt/conda/bin/python3 /usr/bin/python &&
+        chown -R jovyan:users /home/jovyan &&
+        exec start-notebook.py --ServerApp.token=
+      "
+
+    networks:
+      - lakehouse-net
+
+
+
+
+
+    
+
+  # ---------------------------
+  # Dremio
+  # ---------------------------
+  dremio:
+    image: dremio/dremio-oss:24.3
+    container_name: dremio
+    restart: unless-stopped
+    ports:
+      - "9047:9047"
+      - "31010:31010"
+    environment:
+      - DREMIO_JAVA_SERVER_EXTRA_OPTS=-Dnessie.enabled=true
+    depends_on:
+      - nessie
+    networks:
+      - lakehouse-net
+
+volumes:
+  pg_data:
+  nessie_data:
+  jupyter_local:
+  jupyter_config:
+
+networks:
+  lakehouse-net:
+    external: true
