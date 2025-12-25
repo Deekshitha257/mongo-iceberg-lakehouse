@@ -1,23 +1,44 @@
+# --------------------
 # Python
+# --------------------
 __pycache__/
 *.pyc
 
+# --------------------
 # Airflow
+# --------------------
 airflow/logs/
 airflow/dags/__pycache__/
-# airflow/data/
 
+# Ignore airflow data EXCEPT sample JSON
+airflow/data/*
+!airflow/data/
+!airflow/data/BRONZE/
+!airflow/data/BRONZE/orders.json
+
+# --------------------
 # Local / docs
+# --------------------
 *.docx
 
-# Jars (optional – commit only if required)
+# --------------------
+# Jars (do not commit jars)
+# --------------------
 jars/
+airflow/jars/
 
+# --------------------
 # Environment variables
+# --------------------
 .env
 
+# --------------------
 # OS files
+# --------------------
 .DS_Store
 Thumbs.db
 
+# --------------------
+# Backup
+# --------------------
 backup/
